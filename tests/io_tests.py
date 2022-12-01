@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 import pandas as pd
 
-from common.io import SnowfinchNestRecording, validate_recording_data
+from preprocessing.io import SnowfinchNestRecording, validate_recording_data
 
 
 def generate_audio(sample_rate: int, length_sec: int) -> np.ndarray:
