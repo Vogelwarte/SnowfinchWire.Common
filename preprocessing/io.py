@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Optional
 
 import numpy as np
 import pandas as pd
@@ -36,7 +37,7 @@ def number_from_recording_name(recording_title: str, label: str, terminator: chr
 		raise ValueError(f'Invalid recording title format: failed to read {label} parameter')
 
 
-def validate_recording_data(data: SnowfinchNestRecording):
+def validate_recording_data(data: SnowfinchNestRecording, expected_labels: Optional[set[str]] = None):
 	if not pd.Index(data.labels.start).is_monotonic_increasing:
 		raise ValueError('Label start timestamps are not in ascending order')
 
@@ -49,3 +50,8 @@ def validate_recording_data(data: SnowfinchNestRecording):
 	audio_length_sec = data.audio_data.shape[0] / data.audio_sample_rate
 	if data.labels.start.iloc[0] < 0.0 or data.labels.end.iloc[-1] > audio_length_sec:
 		raise ValueError('Labels timestamps do not fit in the audio')
+
+	if expected_labels:
+		for i in range(data.labels.shape[0]):
+			if data.labels.label.iloc[i] not in expected_labels:
+				raise ValueError(f'Unexpected label at position {i + 1}')
