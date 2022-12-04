@@ -19,13 +19,15 @@ def load_recording_data(data_path: str, recording_title: str) -> SnowfinchNestRe
 	brood_age = number_from_recording_name(recording_title, label = 'BA', terminator = '_')
 	brood_size = number_from_recording_name(recording_title, label = 'BS', terminator = '-')
 
-	audio_data, sample_rate = sf.read(f'{data_path}/{recording_title}.flac')
-	labels = pd.read_csv(
-		f'{data_path}/{recording_title}.txt', sep = '\t',
-		header = None, names = ['start', 'end', 'label']
-	)
-
-	return SnowfinchNestRecording(audio_data, sample_rate, labels, brood_age, brood_size)
+	try:
+		audio_data, sample_rate = sf.read(f'{data_path}/{recording_title}.flac')
+		labels = pd.read_csv(
+			f'{data_path}/{recording_title}.txt', sep = '\t',
+			header = None, names = ['start', 'end', 'label']
+		)
+		return SnowfinchNestRecording(audio_data, sample_rate, labels, brood_age, brood_size)
+	except sf.LibsndfileError:
+		raise FileNotFoundError('Audio file not found')
 
 
 def number_from_recording_name(recording_title: str, label: str, terminator: chr) -> int:
