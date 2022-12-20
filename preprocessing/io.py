@@ -8,11 +8,16 @@ import soundfile as sf
 
 @dataclass
 class SnowfinchNestRecording:
+	title: str
 	audio_data: np.ndarray
 	audio_sample_rate: int
 	labels: pd.DataFrame
 	brood_age: int
 	brood_size: int
+
+	@property
+	def audio_len_sec(self):
+		return len(self.audio_data) * self.audio_sample_rate
 
 
 def load_recording_data(data_path: str, recording_title: str) -> SnowfinchNestRecording:
@@ -25,7 +30,7 @@ def load_recording_data(data_path: str, recording_title: str) -> SnowfinchNestRe
 			f'{data_path}/{recording_title}.txt', sep = '\t',
 			header = None, names = ['start', 'end', 'label']
 		)
-		return SnowfinchNestRecording(audio_data, sample_rate, labels, brood_age, brood_size)
+		return SnowfinchNestRecording(recording_title, audio_data, sample_rate, labels, brood_age, brood_size)
 	except sf.LibsndfileError:
 		raise FileNotFoundError('Audio file not found')
 
