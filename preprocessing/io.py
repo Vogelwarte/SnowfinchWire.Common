@@ -36,17 +36,21 @@ def read_audacity_labels(data_path: Union[str, Path]) -> list[InputRecord]:
 
 
 def load_recording_data(data_path: Path,
+						recording_title: Optional[str] = None,
 						label_reader: Callable[[Union[str, Path]], list[InputRecord]] = read_audacity_labels
 						) -> SnowfinchNestRecording:
-	recording_title = data_path.stem
+	if recording_title is None:
+		recording_title = data_path.stem
+		data_path = data_path.parent
+
 	brood_age = number_from_recording_name(recording_title, label = 'BA', terminator = '_')
 	brood_size = number_from_recording_name(recording_title, label = 'BS', terminator = '-')
 
 	try:
-		audio_data, sample_rate = sf.read(f'{data_path}.flac')
-		labels_file = next(Path(f'{data_path.parent}').glob(f'{recording_title}*.txt'))
+		audio_data, sample_rate = sf.read(f'{data_path}/{recording_title}.flac')
+		labels_file = next(Path(f'{data_path}').glob(f'{recording_title}*.txt'))
 		labels_list = label_reader(labels_file)
-		labels = pd.DataFrame(labels_list)
+		labels = pd.DataFrame(labels_list).convert_dtypes()
 		return SnowfinchNestRecording(audio_data, sample_rate, labels, brood_age, brood_size)
 	except sf.LibsndfileError:
 		raise FileNotFoundError('Audio file not found')
