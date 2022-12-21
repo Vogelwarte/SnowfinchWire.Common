@@ -1,9 +1,19 @@
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, Union
 
 import numpy as np
 import pandas as pd
 import soundfile as sf
+import csv
+from typing import Callable
+from pathlib import Path
+
+
+@dataclass
+class InputRecord:
+	start: float
+	end: float
+	label: str
 
 
 @dataclass
@@ -15,19 +25,33 @@ class SnowfinchNestRecording:
 	brood_size: int
 
 
-def load_recording_data(data_path: str, recording_title: str) -> SnowfinchNestRecording:
+def read_audacity_labels(data_path: Union[str, Path]) -> list[InputRecord]:
+	result = []
+	with open(data_path) as f:
+		cf = csv.DictReader(f, fieldnames = ['start', 'end', 'label'], delimiter = '\t')
+		for row in cf:
+			result.append(InputRecord(row['start'], row['end'], row['label']))
+
+	return result
+
+
+def load_recording_data(data_path: Path,
+						label_reader: Callable[[Union[str, Path]], list[InputRecord]] = read_audacity_labels
+						) -> SnowfinchNestRecording:
+	recording_title = data_path.stem
 	brood_age = number_from_recording_name(recording_title, label = 'BA', terminator = '_')
 	brood_size = number_from_recording_name(recording_title, label = 'BS', terminator = '-')
 
 	try:
-		audio_data, sample_rate = sf.read(f'{data_path}/{recording_title}.flac')
-		labels = pd.read_csv(
-			f'{data_path}/{recording_title}.txt', sep = '\t',
-			header = None, names = ['start', 'end', 'label']
-		)
+		audio_data, sample_rate = sf.read(f'{data_path}.flac')
+		labels_file = next(Path(f'{data_path.parent}').glob(f'{recording_title}*.txt'))
+		labels_list = label_reader(labels_file)
+		labels = pd.DataFrame(labels_list)
 		return SnowfinchNestRecording(audio_data, sample_rate, labels, brood_age, brood_size)
 	except sf.LibsndfileError:
 		raise FileNotFoundError('Audio file not found')
+	except StopIteration:
+		raise FileNotFoundError('Labels file not found')
 
 
 def number_from_recording_name(recording_title: str, label: str, terminator: chr) -> int:
