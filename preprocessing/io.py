@@ -35,15 +35,15 @@ def read_audacity_labels(data_path: Union[str, Path]) -> list[InputRecord]:
 	with open(data_path) as f:
 		cf = csv.DictReader(f, fieldnames = ['start', 'end', 'label'], delimiter = '\t')
 		for row in cf:
-			result.append(InputRecord(row['start'], row['end'], row['label']))
+			result.append(InputRecord(float(row['start']), float(row['end']), row['label']))
 
 	return result
 
 
-def load_recording_data(data_path: Path,
-						recording_title: Optional[str] = None,
-						label_reader: Callable[[Union[str, Path]], list[InputRecord]] = read_audacity_labels
-						) -> SnowfinchNestRecording:
+def load_recording_data(
+		data_path: Path, recording_title: Optional[str] = None,
+		label_reader: Callable[[Union[str, Path]], list[InputRecord]] = read_audacity_labels
+) -> SnowfinchNestRecording:
 	if recording_title is None:
 		recording_title = data_path.stem
 		data_path = data_path.parent
