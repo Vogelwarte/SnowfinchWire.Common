@@ -83,7 +83,7 @@ def validate_recording_data(data: SnowfinchNestRecording, expected_labels: Optio
 		raise ValueError('Start timestamp of some labels is after their end timestamp')
 
 	audio_length_sec = data.audio_data.shape[0] / data.audio_sample_rate
-	if data.labels.start.iloc[0] < 0.0 or data.labels.end.iloc[-1] > audio_length_sec:
+	if data.labels.start.iloc[0] < 0.0 or data.labels.start.iloc[-1] > audio_length_sec:
 		raise ValueError('Labels timestamps do not fit in the audio')
 
 	if expected_labels:
