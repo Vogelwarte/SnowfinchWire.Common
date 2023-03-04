@@ -70,7 +70,7 @@ class TestLoadRecordingData(unittest.TestCase):
 			brood_size = self.brood_size, brood_age = self.brood_age, labels = self.labels
 		)
 		self.data_dir = Path(data_dir)
-		self.data_params = [(self.data_dir, self.rec_title), (self.data_dir / f'{self.rec_title}.flac', None)]
+		self.rec_path = self.data_dir.joinpath(self.rec_title).with_suffix('.flac')
 
 	def doCleanups(self) -> None:
 		audio_file = Path(f'{self.data_dir}/{self.rec_title}.flac')
@@ -84,46 +84,43 @@ class TestLoadRecordingData(unittest.TestCase):
 		os.removedirs(self.data_dir)
 
 	def test_obj_type_ok_for_correct_data(self):
-		for data_dir, rec_title in self.data_params:
-			with self.subTest():
-				rec_data = load_recording_data(data_dir, rec_title)
-				self.assertIsInstance(rec_data, SnowfinchNestRecording)
+		rec_data = load_recording_data(self.rec_path)
+		self.assertIsInstance(rec_data, SnowfinchNestRecording)
 
 	def test_audio_ok_for_correct_data(self):
-		for data_dir, rec_title in self.data_params:
-			with self.subTest():
-				rec_data = load_recording_data(data_dir, rec_title)
-				self.assertIsInstance(rec_data.audio_data, np.ndarray)
-				self.assertEqual(self.sample_rate, rec_data.audio_sample_rate)
-				self.assertEqual(self.length_sec, rec_data.audio_data.shape[0] / rec_data.audio_sample_rate)
-				self.assertTrue(all(rec_data.audio_data >= -1.0) and all(rec_data.audio_data <= 1.0))
+		rec_data = load_recording_data(self.rec_path)
+		self.assertIsInstance(rec_data.audio_data, np.ndarray)
+		self.assertEqual(self.sample_rate, rec_data.audio_sample_rate)
+		self.assertEqual(self.length_sec, rec_data.audio_data.shape[0] / rec_data.audio_sample_rate)
+		self.assertTrue(all(rec_data.audio_data >= -1.0) and all(rec_data.audio_data <= 1.0))
 
 	def test_all_labels_loaded_for_correct_data(self):
-		for data_dir, rec_title in self.data_params:
-			with self.subTest():
-				rec_data = load_recording_data(data_dir, rec_title)
-				self.assertIsInstance(rec_data.labels, pd.DataFrame)
-				self.assertEqual((self.label_count, 3), rec_data.labels.shape)
+		rec_data = load_recording_data(self.rec_path)
+		self.assertIsInstance(rec_data.labels, pd.DataFrame)
+		self.assertEqual((self.label_count, 3), rec_data.labels.shape)
 
 	def test_value_error_for_non_nunmeric_brood_age(self):
 		invalid_title = self.rec_title.replace(str(self.brood_age), 'xx')
-		self.assertRaises(ValueError, lambda: load_recording_data(self.data_dir, invalid_title))
+		invalid_path = self.rec_path.joinpath(invalid_title).with_suffix('.flac')
+		self.assertRaises(ValueError, lambda: load_recording_data(invalid_path))
 
 	def test_value_error_for_non_nunmeric_brood_size(self):
 		invalid_title = self.rec_title.replace(str(self.brood_age), 'yy')
-		self.assertRaises(ValueError, lambda: load_recording_data(self.data_dir, invalid_title))
+		invalid_path = self.rec_path.joinpath(invalid_title).with_suffix('.flac')
+		self.assertRaises(ValueError, lambda: load_recording_data(invalid_path))
 
 	def test_value_error_for_invalid_filename(self):
-		self.assertRaises(ValueError, lambda: load_recording_data(self.data_dir, 'invalid_title'))
+		invalid_path = self.rec_path.joinpath('invalid_title.flac')
+		self.assertRaises(ValueError, lambda: load_recording_data(invalid_path))
 
 	def test_error_for_missing_labels_file(self):
 		labels_file = next(self.data_dir.glob(f'{self.rec_title}*.txt'))
 		labels_file.unlink()
-		self.assertRaises(FileNotFoundError, lambda: load_recording_data(self.data_dir, self.rec_title))
+		self.assertRaises(FileNotFoundError, lambda: load_recording_data(self.rec_path))
 
 	def test_error_for_missing_audio_file(self):
-		os.remove(f'{self.data_dir}/{self.rec_title}.flac')
-		self.assertRaises(FileNotFoundError, lambda: load_recording_data(self.data_dir, self.rec_title))
+		os.remove(self.rec_path)
+		self.assertRaises(FileNotFoundError, lambda: load_recording_data(self.rec_path))
 
 
 class TestValidateRecordingData(unittest.TestCase):
