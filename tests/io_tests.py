@@ -35,7 +35,10 @@ def generate_nest_recoring(
 ) -> SnowfinchNestRecording:
 	audio = generate_audio(sample_rate, length_sec)
 	labels = generate_labels(0.0, length_sec, label_count, labels)
-	return SnowfinchNestRecording('mock_rec', audio, sample_rate, labels, brood_age, brood_size)
+	return SnowfinchNestRecording(
+		'mock_rec', audio, sample_rate, labels,
+		brood_size = brood_size, brood_age = (brood_age, brood_age)
+	)
 
 
 def generate_and_save_recording(

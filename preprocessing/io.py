@@ -22,7 +22,7 @@ class SnowfinchNestRecording:
 	audio_data: np.ndarray
 	audio_sample_rate: int
 	labels: pd.DataFrame
-	brood_age: int
+	brood_age: tuple[float, float]
 	brood_size: int
 
 	@property
@@ -48,13 +48,14 @@ def load_recording_data(
 	rec_title = path.stem
 
 	if rec_df is None:
-		brood_age = number_from_recording_name(rec_title, label = 'BA', terminator = '_')
+		age_min = age_max = number_from_recording_name(rec_title, label = 'BA', terminator = '_')
 		brood_size = number_from_recording_name(rec_title, label = 'BS', terminator = '-')
 	else:
 		rec_path_rel = path if data_root is None else path.relative_to(data_root)
 		rec_info = rec_df.loc[rec_df['rec_path'] == rec_path_rel]
 		brood_size = rec_info['brood_size']
-		brood_age = rec_info['age_max']  # TODO!
+		age_min = rec_info['age_min']
+		age_max = rec_info['age_max']
 
 	try:
 		audio_data, sample_rate = sf.read(path)
@@ -63,7 +64,11 @@ def load_recording_data(
 		labels_list = label_reader(labels_file)
 		labels = pd.DataFrame(labels_list).convert_dtypes()
 
-		return SnowfinchNestRecording(rec_title, audio_data, sample_rate, labels, brood_age, brood_size)
+		return SnowfinchNestRecording(
+			rec_title, audio_data, sample_rate, labels,
+			brood_size = brood_size, brood_age = (age_min, age_max)
+		)
+
 	except sf.LibsndfileError:
 		raise FileNotFoundError('Audio file not found')
 	except StopIteration:
