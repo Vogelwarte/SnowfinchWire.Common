@@ -41,22 +41,29 @@ def read_audacity_labels(data_path: Union[str, Path]) -> list[InputRecord]:
 
 
 def load_recording_data(
-		data_path: Path, recording_title: Optional[str] = None,
-		label_reader: Callable[[Union[str, Path]], list[InputRecord]] = read_audacity_labels
+		path: Path, data_root: Optional[Union[Path, str]] = None,
+		label_reader: Callable[[Union[str, Path]], list[InputRecord]] = read_audacity_labels,
+		rec_df: Optional[pd.DataFrame] = None
 ) -> SnowfinchNestRecording:
-	if recording_title is None:
-		recording_title = data_path.stem
-		data_path = data_path.parent
+	rec_title = path.stem
 
-	brood_age = number_from_recording_name(recording_title, label = 'BA', terminator = '_')
-	brood_size = number_from_recording_name(recording_title, label = 'BS', terminator = '-')
+	if rec_df is None:
+		brood_age = number_from_recording_name(rec_title, label = 'BA', terminator = '_')
+		brood_size = number_from_recording_name(rec_title, label = 'BS', terminator = '-')
+	else:
+		rec_path_rel = path if data_root is None else path.relative_to(data_root)
+		rec_info = rec_df.loc[rec_df['rec_path'] == rec_path_rel]
+		brood_size = rec_info['brood_size']
+		brood_age = rec_info['age_max']  # TODO!
 
 	try:
-		audio_data, sample_rate = sf.read(f'{data_path}/{recording_title}.flac')
-		labels_file = next(Path(f'{data_path}').glob(f'{recording_title}*.txt'))
+		audio_data, sample_rate = sf.read(path)
+
+		labels_file = next(Path(path.parent).glob(f'*{rec_title}*.txt'))
 		labels_list = label_reader(labels_file)
 		labels = pd.DataFrame(labels_list).convert_dtypes()
-		return SnowfinchNestRecording(recording_title, audio_data, sample_rate, labels, brood_age, brood_size)
+
+		return SnowfinchNestRecording(rec_title, audio_data, sample_rate, labels, brood_age, brood_size)
 	except sf.LibsndfileError:
 		raise FileNotFoundError('Audio file not found')
 	except StopIteration:

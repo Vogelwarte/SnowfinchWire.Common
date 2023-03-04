@@ -106,12 +106,12 @@ class TestLoadRecordingData(unittest.TestCase):
 				self.assertEqual((self.label_count, 3), rec_data.labels.shape)
 
 	def test_value_error_for_non_nunmeric_brood_age(self):
-			invalid_title = self.rec_title.replace(str(self.brood_age), 'xx')
-			self.assertRaises(ValueError, lambda: load_recording_data(self.data_dir, invalid_title))
+		invalid_title = self.rec_title.replace(str(self.brood_age), 'xx')
+		self.assertRaises(ValueError, lambda: load_recording_data(self.data_dir, invalid_title))
 
 	def test_value_error_for_non_nunmeric_brood_size(self):
-			invalid_title = self.rec_title.replace(str(self.brood_age), 'yy')
-			self.assertRaises(ValueError, lambda: load_recording_data(self.data_dir, invalid_title))
+		invalid_title = self.rec_title.replace(str(self.brood_age), 'yy')
+		self.assertRaises(ValueError, lambda: load_recording_data(self.data_dir, invalid_title))
 
 	def test_value_error_for_invalid_filename(self):
 		self.assertRaises(ValueError, lambda: load_recording_data(self.data_dir, 'invalid_title'))
