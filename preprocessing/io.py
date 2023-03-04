@@ -50,12 +50,15 @@ def load_recording_data(
 	if rec_df is None:
 		age_min = age_max = number_from_recording_name(rec_title, label = 'BA', terminator = '_')
 		brood_size = number_from_recording_name(rec_title, label = 'BS', terminator = '-')
+		full_rec_title = rec_title
 	else:
 		rec_path_rel = path if data_root is None else path.relative_to(data_root)
-		rec_info = rec_df.loc[rec_df['rec_path'] == rec_path_rel]
-		brood_size = rec_info['brood_size']
-		age_min = rec_info['age_min']
-		age_max = rec_info['age_max']
+		rec_info = rec_df.loc[rec_df['rec_path'] == str(rec_path_rel)]
+		brood_id = rec_info['brood_id'].values[0]
+		brood_size = rec_info['brood_size'].values[0]
+		age_min = rec_info['age_min'].values[0]
+		age_max = rec_info['age_max'].values[0]
+		full_rec_title = f'{brood_id}_{rec_title}'
 
 	try:
 		audio_data, sample_rate = sf.read(path)
@@ -65,7 +68,7 @@ def load_recording_data(
 		labels = pd.DataFrame(labels_list).convert_dtypes()
 
 		return SnowfinchNestRecording(
-			rec_title, audio_data, sample_rate, labels,
+			full_rec_title, audio_data, sample_rate, labels,
 			brood_size = brood_size, brood_age = (age_min, age_max)
 		)
 
@@ -85,6 +88,9 @@ def number_from_recording_name(recording_title: str, label: str, terminator: chr
 
 
 def validate_recording_data(data: SnowfinchNestRecording, expected_labels: Optional[set[str]] = None):
+	if not len(data.labels):
+		return
+
 	if not pd.Index(data.labels.start).is_monotonic_increasing:
 		raise ValueError('Label start timestamps are not in ascending order')
 
