@@ -41,23 +41,20 @@ def read_audacity_labels(data_path: Union[str, Path]) -> list[InputRecord]:
 
 
 def load_recording_data(
-		path: Path, data_root: Optional[Union[Path, str]] = None,
-		label_reader: Callable[[Union[str, Path]], list[InputRecord]] = read_audacity_labels,
-		rec_df: Optional[pd.DataFrame] = None
+		path: Path, label_reader: Callable[[Union[str, Path]], list[InputRecord]] = read_audacity_labels,
+		rec_info: Optional[pd.Series] = None
 ) -> SnowfinchNestRecording:
 	rec_title = path.stem
 
-	if rec_df is None:
+	if rec_info is None:
 		age_min = age_max = number_from_recording_name(rec_title, label = 'BA', terminator = '_')
 		brood_size = number_from_recording_name(rec_title, label = 'BS', terminator = '-')
 		full_rec_title = rec_title
 	else:
-		rec_path_rel = path if data_root is None else path.relative_to(data_root)
-		rec_info = rec_df.loc[rec_df['rec_path'] == str(rec_path_rel)]
-		brood_id = rec_info['brood_id'].values[0]
-		brood_size = rec_info['brood_size'].values[0]
-		age_min = rec_info['age_min'].values[0]
-		age_max = rec_info['age_max'].values[0]
+		brood_id = rec_info['brood_id']
+		brood_size = rec_info['brood_size']
+		age_min = rec_info['age_min']
+		age_max = rec_info['age_max']
 		full_rec_title = f'{brood_id}_{rec_title}'
 
 	try:
