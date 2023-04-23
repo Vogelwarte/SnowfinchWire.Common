@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Optional, Union, Tuple, List
+from typing import Optional, Union, Tuple, List, Set
 
 import numpy as np
 import pandas as pd
@@ -84,7 +84,7 @@ def number_from_recording_name(recording_title: str, label: str, terminator: chr
 		raise ValueError(f'Invalid recording title format: failed to read {label} parameter')
 
 
-def validate_recording_data(data: SnowfinchNestRecording, expected_labels: Optional[set[str]] = None):
+def validate_recording_data(data: SnowfinchNestRecording, expected_labels: Optional[Set[str]] = None):
 	if not len(data.labels):
 		return
 
