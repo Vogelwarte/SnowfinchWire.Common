@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Optional, Union
+from typing import Optional, Union, Tuple, List
 
 import numpy as np
 import pandas as pd
@@ -22,7 +22,7 @@ class SnowfinchNestRecording:
 	audio_data: np.ndarray
 	audio_sample_rate: int
 	labels: pd.DataFrame
-	brood_age: tuple[float, float]
+	brood_age: Tuple[float, float]
 	brood_size: int
 
 	@property
@@ -30,7 +30,7 @@ class SnowfinchNestRecording:
 		return len(self.audio_data) * self.audio_sample_rate
 
 
-def read_audacity_labels(data_path: Union[str, Path]) -> list[InputRecord]:
+def read_audacity_labels(data_path: Union[str, Path]) -> List[InputRecord]:
 	result = []
 	with open(data_path) as f:
 		cf = csv.DictReader(f, fieldnames = ['start', 'end', 'label'], delimiter = '\t')
@@ -41,7 +41,7 @@ def read_audacity_labels(data_path: Union[str, Path]) -> list[InputRecord]:
 
 
 def load_recording_data(
-		path: Path, label_reader: Callable[[Union[str, Path]], list[InputRecord]] = read_audacity_labels,
+		path: Path, label_reader: Callable[[Union[str, Path]], List[InputRecord]] = read_audacity_labels,
 		rec_info: Optional[pd.Series] = None
 ) -> SnowfinchNestRecording:
 	rec_title = path.stem

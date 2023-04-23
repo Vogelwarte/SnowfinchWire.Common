@@ -1,6 +1,7 @@
 import os
 import unittest
 from pathlib import Path
+from typing import List, Tuple
 
 import numpy as np
 import pandas as pd
@@ -13,7 +14,7 @@ def generate_audio(sample_rate: int, length_sec: int) -> np.ndarray:
 	return np.random.random(sample_rate * length_sec) * 2.0 - 1.0
 
 
-def generate_labels(start: float, end: float, count: int, labels: list[str]) -> pd.DataFrame:
+def generate_labels(start: float, end: float, count: int, labels: List[str]) -> pd.DataFrame:
 	max_label_length_sec = (end - start) / count
 
 	label_starts = np.linspace(start, end - max_label_length_sec, num = count)
@@ -31,7 +32,7 @@ def generate_labels(start: float, end: float, count: int, labels: list[str]) -> 
 
 def generate_nest_recoring(
 		sample_rate: int, length_sec: int, label_count: int,
-		brood_age: int, brood_size: int, labels: list[str]
+		brood_age: int, brood_size: int, labels: List[str]
 ) -> SnowfinchNestRecording:
 	audio = generate_audio(sample_rate, length_sec)
 	labels = generate_labels(0.0, length_sec, label_count, labels)
@@ -43,8 +44,8 @@ def generate_nest_recoring(
 
 def generate_and_save_recording(
 		sample_rate: int, length_sec: int, label_count: int,
-		brood_age: int, brood_size: int, labels: list[str]
-) -> tuple[str, str]:
+		brood_age: int, brood_size: int, labels: List[str]
+) -> Tuple[str, str]:
 	test_dir = '_data/test'
 	Path(test_dir).mkdir(parents = True, exist_ok = True)
 
