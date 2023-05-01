@@ -42,20 +42,23 @@ def read_audacity_labels(data_path: Union[str, Path]) -> List[InputRecord]:
 
 def load_recording_data(
 		path: Path, label_reader: Callable[[Union[str, Path]], List[InputRecord]] = read_audacity_labels,
-		rec_info: Optional[pd.Series] = None
+		rec_info: Optional[pd.Series] = None, include_brood_info = False
 ) -> SnowfinchNestRecording:
 	rec_title = path.stem
+	full_rec_title = rec_title
 
-	if rec_info is None:
-		age_min = age_max = number_from_recording_name(rec_title, label = 'BA', terminator = '_')
-		brood_size = number_from_recording_name(rec_title, label = 'BS', terminator = '-')
-		full_rec_title = rec_title
+	if include_brood_info:
+		if rec_info is None:
+			age_min = age_max = number_from_recording_name(rec_title, label = 'BA', terminator = '_')
+			brood_size = number_from_recording_name(rec_title, label = 'BS', terminator = '-')
+		else:
+			brood_id = rec_info['brood_id']
+			brood_size = rec_info['brood_size']
+			age_min = rec_info['age_min']
+			age_max = rec_info['age_max']
+			full_rec_title = f'{brood_id}_{rec_title}'
 	else:
-		brood_id = rec_info['brood_id']
-		brood_size = rec_info['brood_size']
-		age_min = rec_info['age_min']
-		age_max = rec_info['age_max']
-		full_rec_title = f'{brood_id}_{rec_title}'
+		brood_size = age_min = age_max = -1
 
 	try:
 		audio_data, sample_rate = sf.read(path)
