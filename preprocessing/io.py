@@ -32,10 +32,13 @@ class SnowfinchNestRecording:
 
 def read_audacity_labels(data_path: Union[str, Path]) -> List[InputRecord]:
 	result = []
-	with open(data_path) as f:
-		cf = csv.DictReader(f, fieldnames = ['start', 'end', 'label'], delimiter = '\t')
-		for row in cf:
-			result.append(InputRecord(float(row['start']), float(row['end']), row['label']))
+	try:
+		with open(data_path) as f:
+			cf = csv.DictReader(f, fieldnames = ['start', 'end', 'label'], delimiter = '\t')
+			for row in cf:
+				result.append(InputRecord(float(row['start']), float(row['end']), row['label']))
+	except Exception as error:
+		print(f'Error loading labels from file {Path(data_path).as_posix()}')
 
 	return result
 
